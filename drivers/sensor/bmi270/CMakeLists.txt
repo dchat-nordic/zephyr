@@ -6,4 +6,4 @@
 
 zephyr_library()
 
-zephyr_library_sources(bmi270.c)
+zephyr_library_sources(bmi270.c bmi270_spi.c bmi270_i2c.c)

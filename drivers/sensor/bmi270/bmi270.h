@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2021 Bosch Sensortec GmbH
+ * Copyright (c) 2022 Nordic Semiconductor ASA
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -7,10 +8,18 @@
 #ifndef ZEPHYR_DRIVERS_SENSOR_BMI270_BMI270_H_
 #define ZEPHYR_DRIVERS_SENSOR_BMI270_BMI270_H_
 
+
 #include <zephyr/device.h>
 #include <zephyr/sys/util.h>
 #include <zephyr/types.h>
 #include <zephyr/drivers/sensor.h>
+#include <zephyr/drivers/spi.h>
+#include <zephyr/drivers/i2c.h>
+#include <zephyr/devicetree.h>
+
+#define DT_DRV_COMPAT bosch_bmi270
+#define BMI270_BUS_SPI DT_ANY_INST_ON_BUS_STATUS_OKAY(spi)
+#define BMI270_BUS_I2C DT_ANY_INST_ON_BUS_STATUS_OKAY(i2c)
 
 #define BMI270_REG_CHIP_ID         0x00
 #define BMI270_REG_ERROR           0x02
@@ -200,16 +209,51 @@
 	((reg_data & ~(bitname##_MSK)) | (data & bitname##_MSK))
 
 struct bmi270_data {
-	const struct device *i2c;
-	uint8_t i2c_addr;
 	int16_t ax, ay, az, gx, gy, gz;
 	uint8_t acc_range, acc_odr, gyr_odr;
 	uint16_t gyr_range;
 };
 
-struct bmi270_dev_config {
-	const char *i2c_master_name;
-	uint16_t i2c_addr;
+union bmi270_bus {
+#if BMI270_BUS_SPI
+	struct spi_dt_spec spi;
+#endif
+#if BMI270_BUS_I2C
+	struct i2c_dt_spec i2c;
+#endif
+};
+
+typedef int (*bmi270_bus_check_fn)(const union bmi270_bus *bus);
+typedef int (*bmi270_bus_init_fn)(const union bmi270_bus *bus);
+typedef int (*bmi270_reg_read_fn)(const union bmi270_bus *bus,
+				  uint8_t start,
+				  uint8_t *data,
+				  uint16_t len);
+typedef int (*bmi270_reg_write_fn)(const union bmi270_bus *bus,
+				   uint8_t start,
+				   const uint8_t *data,
+				   uint16_t len);
+
+struct bmi270_bus_io {
+	bmi270_bus_check_fn check;
+	bmi270_reg_read_fn read;
+	bmi270_reg_write_fn write;
+	bmi270_bus_init_fn init;
+};
+
+#if BMI270_BUS_SPI
+#define BMI270_SPI_OPERATION (SPI_WORD_SET(8) | SPI_TRANSFER_MSB)
+#define BMI270_SPI_ACC_DELAY_US 2
+extern const struct bmi270_bus_io bmi270_bus_io_spi;
+#endif
+
+#if BMI270_BUS_I2C
+extern const struct bmi270_bus_io bmi270_bus_io_i2c;
+#endif
+
+struct bmi270_config {
+	union bmi270_bus bus;
+	const struct bmi270_bus_io *bus_io;
 };
 
 #endif /* ZEPHYR_DRIVERS_SENSOR_BMI270_BMI270_H_ */
