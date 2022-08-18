@@ -531,34 +531,34 @@ static int bmi270_channel_get(const struct device *dev,
 			      enum sensor_channel chan,
 			      struct sensor_value *val)
 {
-	struct bmi270_data *drv_dev = dev->data;
+	struct bmi270_data *data = dev->data;
 
 	if (chan == SENSOR_CHAN_ACCEL_X) {
-		channel_accel_convert(val, drv_dev->ax, drv_dev->acc_range);
+		channel_accel_convert(val, data->ax, data->acc_range);
 	} else if (chan == SENSOR_CHAN_ACCEL_Y) {
-		channel_accel_convert(val, drv_dev->ay, drv_dev->acc_range);
+		channel_accel_convert(val, data->ay, data->acc_range);
 	} else if (chan == SENSOR_CHAN_ACCEL_Z) {
-		channel_accel_convert(val, drv_dev->az, drv_dev->acc_range);
+		channel_accel_convert(val, data->az, data->acc_range);
 	} else if (chan == SENSOR_CHAN_ACCEL_XYZ) {
-		channel_accel_convert(&val[0], drv_dev->ax,
-				      drv_dev->acc_range);
-		channel_accel_convert(&val[1], drv_dev->ay,
-				      drv_dev->acc_range);
-		channel_accel_convert(&val[2], drv_dev->az,
-				      drv_dev->acc_range);
+		channel_accel_convert(&val[0], data->ax,
+				      data->acc_range);
+		channel_accel_convert(&val[1], data->ay,
+				      data->acc_range);
+		channel_accel_convert(&val[2], data->az,
+				      data->acc_range);
 	} else if (chan == SENSOR_CHAN_GYRO_X) {
-		channel_gyro_convert(val, drv_dev->gx, drv_dev->gyr_range);
+		channel_gyro_convert(val, data->gx, data->gyr_range);
 	} else if (chan == SENSOR_CHAN_GYRO_Y) {
-		channel_gyro_convert(val, drv_dev->gy, drv_dev->gyr_range);
+		channel_gyro_convert(val, data->gy, data->gyr_range);
 	} else if (chan == SENSOR_CHAN_GYRO_Z) {
-		channel_gyro_convert(val, drv_dev->gz, drv_dev->gyr_range);
+		channel_gyro_convert(val, data->gz, data->gyr_range);
 	} else if (chan == SENSOR_CHAN_GYRO_XYZ) {
-		channel_gyro_convert(&val[0], drv_dev->gx,
-				     drv_dev->gyr_range);
-		channel_gyro_convert(&val[1], drv_dev->gy,
-				     drv_dev->gyr_range);
-		channel_gyro_convert(&val[2], drv_dev->gz,
-				     drv_dev->gyr_range);
+		channel_gyro_convert(&val[0], data->gx,
+				     data->gyr_range);
+		channel_gyro_convert(&val[1], data->gy,
+				     data->gyr_range);
+		channel_gyro_convert(&val[2], data->gz,
+				     data->gyr_range);
 	} else {
 		return -ENOTSUP;
 	}
@@ -616,7 +616,7 @@ static int bmi270_attr_set(const struct device *dev,
 static int bmi270_init(const struct device *dev)
 {
 	int ret;
-	struct bmi270_data *drv_dev = dev->data;
+	struct bmi270_data *data = dev->data;
 	uint8_t chip_id;
 	uint8_t soft_reset_cmd;
 	uint8_t init_ctrl;
@@ -630,10 +630,10 @@ static int bmi270_init(const struct device *dev)
 		return ret;
 	}
 
-	drv_dev->acc_odr = BMI270_ACC_ODR_100_HZ;
-	drv_dev->acc_range = 8;
-	drv_dev->gyr_odr = BMI270_GYR_ODR_200_HZ;
-	drv_dev->gyr_range = 2000;
+	data->acc_odr = BMI270_ACC_ODR_100_HZ;
+	data->acc_range = 8;
+	data->gyr_odr = BMI270_GYR_ODR_200_HZ;
+	data->gyr_range = 2000;
 
 	k_usleep(BMI270_POWER_ON_TIME);
 
